@@ -1,4 +1,4 @@
 import { combineReducers } from 'redux';
-import reducerExample from './reducerExample';
+import media from './media';
 
-export default combineReducers({ reducerExample });
+export default combineReducers({ media });

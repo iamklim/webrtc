@@ -3,7 +3,7 @@ import './App.sass';
 
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
-import Example from './components/Example/Example';
+import Lobby from './components/Lobby';
 
 function App() {
   return (
@@ -11,7 +11,7 @@ function App() {
       <div className="app">
         <Switch>
           <Route exact path="/">
-            <Example prop1 prop2="property" />
+            <Lobby />
           </Route>
         </Switch>
       </div>

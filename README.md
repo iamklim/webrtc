@@ -2,7 +2,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 This is customized version of basic CRA template.<br />
 Template includes SASS, ESLint configured for Airbnb [JS](https://github.com/airbnb/javascript) and [React](https://github.com/airbnb/javascript/tree/master/react) styleguides, Prettier, Redux with thunks, React-router and [Material UI](https://material-ui.com/ru/).<br />
 
-Project includes basic file structure, ESLint and Prettier configs, preconfigured REDUX store, basic routing, Example Component with helpful usEffects and some useful custom hooks from [useHooks](https://usehooks.com/).<br />
+Project includes basic file structure, ESLint and Prettier configs, preconfigured REDUX store, basic routing, Lobby Component with helpful usEffects and some useful custom hooks from [useHooks](https://usehooks.com/).<br />
 Last available version of [Create React App](https://github.com/facebook/create-react-app) is used.<br />
 
 ## Additional packages

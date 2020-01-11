@@ -1,7 +1,7 @@
-import { ACTION_EXAMPLE } from './actionTypes';
+import { MEDIA_CONSTRAINTS_SET } from './actionTypes';
 
 // eslint-disable-next-line import/prefer-default-export
-export const actionExample = contentExample => ({
-  type: ACTION_EXAMPLE,
-  payload: { contentExample },
+export const setMediaConstraints = mediaConstraints => ({
+  type: MEDIA_CONSTRAINTS_SET,
+  payload: { mediaConstraints },
 });

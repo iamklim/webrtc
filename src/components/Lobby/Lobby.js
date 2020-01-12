@@ -1,42 +1,18 @@
 import React from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 import './Lobby.sass';
 
-import useMediaStream from '../../services/useMediaStream';
+import useUserMedia from '../../services/useUserMedia';
+import VideoStream from '../VideoStream';
 
-function Lobby({ mediaConstraints }) {
-  useMediaStream(mediaConstraints);
+function Lobby() {
+  const localMediaStream = useUserMedia();
 
   return (
     <div className="lobby">
-      <p>Lobby</p>
+      <VideoStream stream={localMediaStream} />
+      <div className="lobby__curtain" />
     </div>
   );
 }
 
-Lobby.defaultProps = {
-  mediaConstraints: {
-    audio: true,
-    video: true,
-  },
-};
-
-Lobby.propTypes = {
-  mediaConstraints: PropTypes.shape({
-    audio: PropTypes.bool,
-    video: PropTypes.bool,
-  }),
-};
-
-const mapStateToProps = state => {
-  return {
-    media: state.media.mediaConstraints,
-  };
-};
-
-// eslint-disable-next-line prettier/prettier
-export default connect(
-  mapStateToProps,
-  null
-)(Lobby);
+export default Lobby;

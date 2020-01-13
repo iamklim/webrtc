@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import './VideoStream.sass';
-import CircularProgress from '@material-ui/core/CircularProgress';
+
+import Loader from '../Loader';
 
 function VideoStream({ stream, muted, minimized }) {
   const videoRef = useRef();
@@ -28,7 +29,7 @@ function VideoStream({ stream, muted, minimized }) {
             <track default kind="captions" />
           </video>
         ) : (
-          <CircularProgress />
+          <Loader />
         )}
       </div>
     </div>

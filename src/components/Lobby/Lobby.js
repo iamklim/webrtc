@@ -2,10 +2,13 @@ import React from 'react';
 import './Lobby.sass';
 
 import useUserMedia from '../../services/useUserMedia';
+import useRTCP from '../../services/useRTCP';
+
 import VideoStream from '../VideoStream';
 
 function Lobby() {
   const localMediaStream = useUserMedia();
+  useRTCP(localMediaStream);
 
   return (
     <div className="lobby">

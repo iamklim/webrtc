@@ -1,17 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
-import io from 'socket.io';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
+import io from 'socket.io-client';
 
 import { pcConfig } from '../constants';
-import useEventListener from './useEventListener';
+// import useEventListener from './useEventListener';
 
-function useRTCP({ localMediaStream }) {
+function useRTCP(room, localMediaStream) {
   const [isChannelReady, setIsChannelReady] = useState(false);
   const [isInitiator, setIsInitiator] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [rtcpConnection, setRtcpConnection] = useState(null);
   // const [turnReady, setTurnReady] = useState(null);
-  const room = 'foo'; // TODO
-  const socket = io.connect();
+  const socket = io.connect('http://localhost:3001');
+  const prevRoom = useRef();
 
   const sendMessage = useCallback(
     message => {
@@ -93,17 +94,19 @@ function useRTCP({ localMediaStream }) {
   }, [rtcpConnection, setLocalAndSendMessage]);
 
   const maybeStart = useCallback(() => {
-    console.log(
-      '>>>>>>> maybeStart() ',
-      isStarted,
-      localMediaStream,
-      isChannelReady
-    );
     if (
+      rtcpConnection &&
+      localMediaStream &&
       !isStarted &&
-      typeof localMediaStream !== 'undefined' &&
+      // typeof localMediaStream !== 'undefined' &&
       isChannelReady
     ) {
+      console.log(
+        '>>>>>>> maybeStart() ',
+        isStarted,
+        localMediaStream,
+        isChannelReady
+      );
       console.log('>>>>>> creating peer connection');
       createPeerConnection();
       rtcpConnection.addStream(localMediaStream);
@@ -123,7 +126,7 @@ function useRTCP({ localMediaStream }) {
     rtcpConnection,
   ]);
 
-  useEventListener('onbeforeunload', sendMessage('bye'));
+  // useEventListener('onbeforeunload', sendMessage('bye'));
 
   const stop = useCallback(() => {
     setIsStarted(false);
@@ -176,8 +179,8 @@ function useRTCP({ localMediaStream }) {
   }, []);
 
   useEffect(() => {
-    console.log('Adding local stream.');
     if (localMediaStream) {
+      console.log('Adding local stream: ', localMediaStream);
       sendMessage('got user media');
       if (isInitiator) {
         maybeStart();
@@ -186,8 +189,9 @@ function useRTCP({ localMediaStream }) {
   }, [isInitiator, localMediaStream, maybeStart, sendMessage]);
 
   useEffect(() => {
-    if (room !== '') {
+    if (room !== '' && room !== prevRoom.current) {
       socket.emit('create or join', room);
+      prevRoom.current = room;
       console.log('Attempted to create or  join room', room);
     }
 
@@ -249,10 +253,15 @@ function useRTCP({ localMediaStream }) {
     isInitiator,
     isStarted,
     maybeStart,
+    room,
     rtcpConnection,
     setLocalAndSendMessage,
     socket,
   ]);
 }
+
+useRTCP.propTypes = {
+  localMediaStream: PropTypes.instanceOf(MediaStream),
+};
 
 export default useRTCP;

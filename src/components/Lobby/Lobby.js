@@ -8,7 +8,8 @@ import VideoStream from '../VideoStream';
 
 function Lobby() {
   const localMediaStream = useUserMedia();
-  useRTCP(localMediaStream);
+  const room = 'foo'; // TODO
+  useRTCP(room, localMediaStream);
 
   return (
     <div className="lobby">

@@ -1,18 +1,32 @@
+/* eslint-disable no-console */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import io from 'socket.io-client';
+/* eslint-disable import/named */
+import {
+  setIsChannelReady,
+  setIsInitiator,
+  setIsStarted,
+} from '../redux/actions';
 
 import { pcConfig } from '../constants';
 // import useEventListener from './useEventListener';
 
 function useRTCP(room, localMediaStream) {
-  const [isChannelReady, setIsChannelReady] = useState(false);
-  const [isInitiator, setIsInitiator] = useState(false);
-  const [isStarted, setIsStarted] = useState(false);
-  const [rtcpConnection, setRtcpConnection] = useState(null);
+  const { isChannelReady, isInitiator, isStarted } = useSelector(
+    state => state.rtcp
+  );
+  const dispatch = useDispatch();
+  // const [isChannelReady, setIsChannelReady] = useState(false);
+  // const [isInitiator, setIsInitiator] = useState(false);
+  // const [isStarted, setIsStarted] = useState(false);
   // const [turnReady, setTurnReady] = useState(null);
+  const [rtcpConnection, setRtcpConnection] = useState(null);
   const socket = io.connect('http://localhost:3001');
   const prevRoom = useRef();
+
+  console.log('**************** RENDER *******************');
 
   const sendMessage = useCallback(
     message => {
@@ -51,17 +65,16 @@ function useRTCP(room, localMediaStream) {
 
   const createPeerConnection = useCallback(() => {
     try {
-      const pc = new RTCPeerConnection(null);
-      pc.onicecandidate = handleIceCandidate;
-      pc.onaddstream = handleRemoteStreamAdded;
-      pc.onremovestream = handleRemoteStreamRemoved;
-      setRtcpConnection(pc);
-      console.log('Created RTCPeerConnnection');
+      setRtcpConnection(new RTCPeerConnection(null));
+      rtcpConnection.onicecandidate = handleIceCandidate;
+      rtcpConnection.onaddstream = handleRemoteStreamAdded;
+      rtcpConnection.onremovestream = handleRemoteStreamRemoved;
+      console.log('Created RTCPeerConnnection', rtcpConnection);
     } catch (e) {
       // eslint-disable-next-line prefer-template
       console.log('Failed to create PeerConnection, exception: ' + e.message);
     }
-  }, [handleIceCandidate]);
+  }, [handleIceCandidate, rtcpConnection]);
 
   const setLocalAndSendMessage = useCallback(
     sessionDescription => {
@@ -94,23 +107,22 @@ function useRTCP(room, localMediaStream) {
   }, [rtcpConnection, setLocalAndSendMessage]);
 
   const maybeStart = useCallback(() => {
+    console.log(
+      '>>>>>>> maybeStart() ',
+      isStarted,
+      localMediaStream,
+      isChannelReady
+    );
     if (
-      rtcpConnection &&
       localMediaStream &&
       !isStarted &&
       // typeof localMediaStream !== 'undefined' &&
       isChannelReady
     ) {
-      console.log(
-        '>>>>>>> maybeStart() ',
-        isStarted,
-        localMediaStream,
-        isChannelReady
-      );
       console.log('>>>>>> creating peer connection');
       createPeerConnection();
       rtcpConnection.addStream(localMediaStream);
-      setIsStarted(true);
+      dispatch(setIsStarted(true));
       console.log('isInitiator', isInitiator);
       if (isInitiator) {
         doCall();
@@ -118,6 +130,7 @@ function useRTCP(room, localMediaStream) {
     }
   }, [
     createPeerConnection,
+    dispatch,
     doCall,
     isChannelReady,
     isInitiator,
@@ -129,16 +142,16 @@ function useRTCP(room, localMediaStream) {
   // useEventListener('onbeforeunload', sendMessage('bye'));
 
   const stop = useCallback(() => {
-    setIsStarted(false);
+    dispatch(setIsStarted(false));
     rtcpConnection.close();
     setRtcpConnection(null);
-  }, [rtcpConnection]);
+  }, [dispatch, rtcpConnection]);
 
   const handleRemoteHangup = useCallback(() => {
     console.log('Session terminated.');
     stop();
-    setIsInitiator(false);
-  }, [stop]);
+    dispatch(setIsInitiator(false));
+  }, [dispatch, stop]);
 
   const requestTurn = turnURL => {
     let turnExists = false;
@@ -189,7 +202,7 @@ function useRTCP(room, localMediaStream) {
   }, [isInitiator, localMediaStream, maybeStart, sendMessage]);
 
   useEffect(() => {
-    if (room !== '' && room !== prevRoom.current) {
+    if (room && room !== '' && room !== prevRoom.current) {
       socket.emit('create or join', room);
       prevRoom.current = room;
       console.log('Attempted to create or  join room', room);
@@ -198,7 +211,7 @@ function useRTCP(room, localMediaStream) {
     socket.on('created', () => {
       // eslint-disable-next-line prefer-template
       console.log('Created room ' + room);
-      setIsInitiator(true);
+      dispatch(setIsInitiator(true));
     });
 
     socket.on('full', () => {
@@ -211,13 +224,13 @@ function useRTCP(room, localMediaStream) {
       console.log('Another peer made a request to join room ' + room);
       // eslint-disable-next-line prefer-template
       console.log('This peer is the initiator of room ' + room + '!');
-      setIsChannelReady(true);
+      dispatch(setIsChannelReady(true));
     });
 
     socket.on('joined', () => {
       // eslint-disable-next-line prefer-template
       console.log('joined: ' + room);
-      setIsChannelReady(true);
+      dispatch(setIsChannelReady(true));
     });
 
     socket.on('log', array => {
@@ -248,6 +261,7 @@ function useRTCP(room, localMediaStream) {
       }
     });
   }, [
+    dispatch,
     doAnswer,
     handleRemoteHangup,
     isInitiator,
